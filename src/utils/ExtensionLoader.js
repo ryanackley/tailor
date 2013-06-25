@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         Async               = require("utils/Async");
     
     var _init       = false,
+        _extensions = {},
         /** @type {Object<string, Object>}  Stores require.js contexts of extensions */
         contexts    = {},
         srcPath     = FileUtils.getNativeBracketsDirectoryPath();
@@ -53,9 +54,9 @@ define(function (require, exports, module) {
     srcPath = srcPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
 
     var globalConfig = {
-            "text" : srcPath + "/thirdparty/text",
-            "i18n" : srcPath + "/thirdparty/i18n",
-            "hgn"  : srcPath + "/thirdparty/hgn"
+            "hgn"  : srcPath + "/thirdparty/hgn",
+            "text" : srcPath + "/thirdparty/text/text",
+            "i18n" : srcPath + "/thirdparty/i18n/i18n"
         };
     
     /**
@@ -92,6 +93,7 @@ define(function (require, exports, module) {
      */
     function loadExtension(name, config, entryPoint) {
         var result = new $.Deferred(),
+            promise = result.promise(),
             extensionRequire = brackets.libRequire.config({
                 context: name,
                 baseUrl: config.baseUrl,
@@ -107,9 +109,23 @@ define(function (require, exports, module) {
         // console.log("[Extension] starting to load " + config.baseUrl);
         
         extensionRequire([entryPoint],
-            function () {
+            function (module) {
                 // console.log("[Extension] finished loading " + config.baseUrl);
-                result.resolve();
+                var initPromise;
+
+                _extensions[name] = module;
+
+                if (module && module.init && (typeof module.init === "function")) {
+                    // optional async extension init 
+                    initPromise = module.init();
+
+                    if (initPromise) {
+                        promise = initPromise.then(result.resolve, result.reject);
+                    }
+                } else {
+                    result.resolve();
+                }
+
                 $(exports).triggerHandler("load", config.baseUrl);
             },
             function errback(err) {
@@ -122,7 +138,7 @@ define(function (require, exports, module) {
                 $(exports).triggerHandler("loadFailed", config.baseUrl);
             });
         
-        return result.promise();
+        return promise;
     }
 
     /**
@@ -317,6 +333,7 @@ define(function (require, exports, module) {
         return promise;
     }
     
+    // public API
     exports.init = init;
     exports.getUserExtensionPath = getUserExtensionPath;
     exports.getRequireContextForExtension = getRequireContextForExtension;

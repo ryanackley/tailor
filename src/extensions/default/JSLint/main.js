@@ -36,6 +36,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Commands                = brackets.getModule("command/Commands"),
+        PanelManager            = brackets.getModule("view/PanelManager"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         Menus                   = brackets.getModule("command/Menus"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
@@ -53,10 +54,14 @@ define(function (require, exports, module) {
         ResultsTemplate         = require("hgn!htmlContent/results-table.html"),
         GoldStarTemplate        = require("hgn!htmlContent/gold-star.html");
     
-    var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
+    var KeyboardPrefs = JSON.parse(require("text!keyboard.json")),
+        JSLintOptions = JSON.parse(require("text!config.json"));
     
-    var INDICATOR_ID = "JSLintStatus",
-        defaultPrefs = { enabled: true };
+    var INDICATOR_ID = "jslint-status",
+        defaultPrefs = {
+            enabled: JSLintOptions.enabled_by_default,
+            collapsed: false
+        };
     
     
     /** @const {string} JSLint commands ID */
@@ -74,6 +79,12 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _enabled = true;
+    
+    /**
+     * @private
+     * @type {boolean}
+     */
+    var _collapsed = false;
     
     /**
      * @private
@@ -154,7 +165,9 @@ define(function (require, exports, module) {
                         EditorManager.focusEditor();
                     });
                 
-                $lintResults.show();
+                if (!_collapsed) {
+                    Resizer.show($lintResults);
+                }
                 if (JSLINT.errors.length === 1) {
                     StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
                 } else {
@@ -173,7 +186,7 @@ define(function (require, exports, module) {
                 setGotoEnabled(true);
             
             } else {
-                $lintResults.hide();
+                Resizer.hide($lintResults);
                 StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
                 setGotoEnabled(false);
             }
@@ -182,12 +195,10 @@ define(function (require, exports, module) {
 
         } else {
             // JSLint is disabled or does not apply to the current file, hide the results
-            $lintResults.hide();
+            Resizer.hide($lintResults);
             StatusBar.updateIndicator(INDICATOR_ID, true, "jslint-disabled", Strings.JSLINT_DISABLED);
             setGotoEnabled(false);
         }
-        
-        EditorManager.resizeEditor();
     }
     
     /**
@@ -226,6 +237,27 @@ define(function (require, exports, module) {
     }
     
     
+    /** 
+     * Toggle the collapsed state for the panel
+     * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
+     */
+    function toggleCollapsed(collapsed) {
+        if (collapsed === undefined) {
+            collapsed = !_collapsed;
+        }
+        
+        _collapsed = collapsed;
+        _prefs.setValue("collapsed", _collapsed);
+        
+        if (_collapsed) {
+            Resizer.hide($lintResults);
+        } else {
+            if (JSLINT.errors && JSLINT.errors.length) {
+                Resizer.show($lintResults);
+            }
+        }
+    }
+    
     /** Command to toggle enablement */
     function handleToggleEnabled() {
         setEnabled(!_enabled);
@@ -261,20 +293,26 @@ define(function (require, exports, module) {
         ExtensionUtils.loadStyleSheet(module, "jslint.css");
         
         var jsLintHtml = JSLintTemplate(Strings);
-        $(jsLintHtml).insertBefore("#status-bar");
-        
-        var goldStarHtml = GoldStarTemplate(Strings);
-        $(goldStarHtml).insertBefore("#status-file");
-        
+        var resultsPanel = PanelManager.createBottomPanel("jslint.results", $(jsLintHtml), 100);
+
         $lintResults = $("#jslint-results");
         
-        StatusBar.addIndicator(INDICATOR_ID, $("#gold-star"));
-        
+        var lintStatusHtml = GoldStarTemplate(Strings);
+        $(lintStatusHtml).insertBefore("#status-language");
+        StatusBar.addIndicator(INDICATOR_ID, $("#lint-status"));
+        $("#jslint-results .close").click(function () {
+            toggleCollapsed(true);
+        });
+
+        $("#jslint-status").click(function () {
+            toggleCollapsed();
+        });
+                                                                
+                                
         // Called on HTML ready to trigger the initial UI state
         setEnabled(_prefs.getValue("enabled"));
         
-        // AppInit.htmlReady() has already executed before extensions are loaded
-        // so, for now, we need to call this ourself
-        Resizer.makeResizable($lintResults.get(0), "vert", "top", 100);
+        toggleCollapsed(_prefs.getValue("collapsed"));
+                
     });
 });
