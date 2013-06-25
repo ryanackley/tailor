@@ -124,6 +124,32 @@ module.exports = function (grunt) {
             repo: grunt.option("shell-repo") || "../brackets-shell",
             mac: "<%= shell.repo %>/installer/mac/staging/<%= pkg.name %>.app",
             win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe"
+        },
+        clean: {
+            packagedApp : ["packaged-app-build"]
+        },
+        copy: {
+            packagedApp: {
+                files: [
+                    {expand: true, cwd: 'src/', src: ['styles/quiet-scrollbars.css', 'styles/jsTreeTheme.css'], dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: 'xdomaincheck.js', dest: 'packaged-app-build/' },
+                    {expand: true, cwd: 'src/', src: ['thirdparty/jquery-1.7.min.js', 'thirdparty/less-1.3.0.min.js', 'thirdparty/text.js'], dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/lib/codemirror.js', dest: 'packaged-app-build/' },
+                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/edit/matchbrackets.js', dest: 'packaged-app-build/' },
+                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/edit/closebrackets.js', dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/edit/closetag.js', dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/selection/active-line.js', dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/search/searchcursor.js', dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/lib/codemirror.css', dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: ['thirdparty/require.js', 'thirdparty/hgn.js', 'thirdparty/hogan.js', 'thirdparty/text.js', 'thirdparty/i18n.js'], dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: 'librarycheck.js', dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: ['styles/images/**', 'styles/fonts/**'], dest: 'packaged-app-build'},
+                    {expand: true, cwd: 'src/', src: 'nls/**', dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/mode/**', dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/packagedApp/', src: ['manifest.json','background.js'], dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/extensions/default', src: ['**/thirdparty/**', '**/*.svg', '**/*.html', '**/*.css', 'JavaScriptCodeHints/parser-worker.js', 'JavaScriptCodeHints/Scope.js','JavaScriptCodeHints/HintUtils.js'], dest: 'packaged-app-build/extensions/'}
+                ]
+            }
         }
     });
 
@@ -132,6 +158,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
     // task: install
     grunt.registerTask('install', ['write-config']);
@@ -143,6 +171,8 @@ module.exports = function (grunt) {
     // task: set-sprint
     // Update sprint number in package.json and rewrite src/config.json
     grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
+
+    grunt.registerTask('package', ['clean:packagedApp', 'packaged-app', 'copy:packagedApp']);
 
     // Default task.
     grunt.registerTask('default', ['test']);

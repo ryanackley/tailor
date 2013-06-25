@@ -174,6 +174,10 @@ define(function (require, exports, module) {
          * @param {function(DOMError)=} errorCallback Callback function for errors, including permission errors.
          */
         requestNativeFileSystem: function (path, successCallback, errorCallback) {
+            if (!path || !path.length || path == '/'){
+                successCallback(new NativeFileSystem.FileSystem());
+                return;
+            }
             brackets.fs.stat(path, function (err, data) {
                 if (!err) {
                     successCallback(new NativeFileSystem.FileSystem(path));

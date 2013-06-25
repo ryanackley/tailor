@@ -1,0 +1,11 @@
+{
+  "name": "Tailor-brackets",
+  "description": "Code Editor for Chrome",
+  "version": "0.1",
+  "app": {
+    "background": {
+      "scripts": ["background.js"]
+    }
+  },
+  "permissions" : ["storage", "fileSystem", "fileSystem.write", "unlimitedStorage"]
+}

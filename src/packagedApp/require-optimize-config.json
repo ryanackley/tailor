@@ -1,0 +1,17 @@
+{
+    "name": "brackets",
+    "optimize": "none", 
+    "paths": {
+        "text"      : "thirdparty/text",
+        "i18n"      : "thirdparty/i18n",
+        "hogan"     : "thirdparty/hogan",
+        "hgn"       : "thirdparty/hgn"
+    },
+    "hgn" : {
+        "templateExtension" : ""
+    },
+    "config" : {
+        "file/PlatformFileSystem" : {"filesystem": "html5"},
+        "preferences/PreferencesManager" : {"persistentStorage" : "chrome"}
+    }
+}

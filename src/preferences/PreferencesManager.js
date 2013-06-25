@@ -35,7 +35,8 @@ define(function (require, exports, module) {
     var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage,
         FileUtils         = require("file/FileUtils"),
         ExtensionLoader   = require("utils/ExtensionLoader"),
-        CollectionUtils   = require("utils/CollectionUtils");
+        CollectionUtils   = require("utils/CollectionUtils"),
+        ChromeStorage = require("preferences/ChromeStorage");
     
     /**
      * The local storage ID
@@ -161,7 +162,7 @@ define(function (require, exports, module) {
      * @private
      * Initialize persistent storage implementation
      */
-    function _initStorage(storage) {
+    function initStorage(storage) {
         persistentStorage = storage;
 
         if (doLoadPreferences) {
@@ -199,7 +200,7 @@ define(function (require, exports, module) {
 
     // Check localStorage for a preferencesKey. Production and unit test keys
     // are used to keep preferences separate within the same storage implementation.
-    preferencesKey = localStorage.getItem("preferencesKey");
+    //preferencesKey = localStorage.getItem("preferencesKey");
     
     if (!preferencesKey) {
         // use default key if none is found
@@ -211,13 +212,22 @@ define(function (require, exports, module) {
     }
 
     // Use localStorage by default
-    _initStorage(localStorage);
+    if (module.config().persistentStorage != "chrome"){
+        initStorage(localStorage);
+    }
+    else{
+        //ChromeStorage.initStorage(function(){
+        initStorage(ChromeStorage);
+        //});
+    }
+    
 
     // Public API
     exports.getPreferenceStorage    = getPreferenceStorage;
     exports.savePreferences         = savePreferences;
     exports.handleClientIdChange    = handleClientIdChange;
     exports.getClientID             = getClientID;
+    exports.initStorage             = initStorage;
 
     // Unit test use only
     exports._reset                  = _reset;

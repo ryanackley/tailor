@@ -28,13 +28,21 @@
 require.config({
     paths: {
         "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n"
+        "i18n"      : "thirdparty/i18n",
+        "hogan"     : "thirdparty/hogan"
+    },
+    hgn : {
+        templateExtension : ""
+    },
+    config : {
+        "file/PlatformFileSystem" : {filesystem: "html5"},
+        "preferences/PreferencesManager" : {persistentStorage : "chrome"}
     },
     // Use custom brackets property until CEF sets the correct navigator.language
     // NOTE: When we change to navigator.language here, we also should change to
     // navigator.language in ExtensionLoader (when making require contexts for each
     // extension).
-    locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
+    locale: /*window.localStorage.getItem("locale") || */(typeof (brackets) !== "undefined" ? brackets.app.language : navigator.language)
 });
 
 /**
@@ -79,7 +87,7 @@ define(function (require, exports, module) {
         QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
-        MainViewHTML            = require("text!htmlContent/main-view.html"),
+        MainViewHTML            = require("hgn!htmlContent/main-view.html"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
@@ -87,12 +95,14 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async"),
         UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams,
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        PlatformFileSystem        = require("file/PlatformFileSystem").PlatformFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
         Resizer                 = require("utils/Resizer"),
         LiveDevelopmentMain     = require("LiveDevelopment/main"),
         NodeConnection          = require("utils/NodeConnection"),
         ExtensionUtils          = require("utils/ExtensionUtils");
+
+
             
     // Load modules that self-register and just need to get included in the main project
     require("command/DefaultMenus");
@@ -162,13 +172,13 @@ define(function (require, exports, module) {
         EditorManager.setEditorHolder($("#editor-holder"));
 
         // Let the user know Brackets doesn't run in a web browser yet
-        if (brackets.inBrowser) {
-            Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
-                Strings.ERROR_IN_BROWSER_TITLE,
-                Strings.ERROR_IN_BROWSER
-            );
-        }
+        // if (brackets.inBrowser) {
+        //     Dialogs.showModalDialog(
+        //         Dialogs.DIALOG_ID_ERROR,
+        //         Strings.ERROR_IN_BROWSER_TITLE,
+        //         Strings.ERROR_IN_BROWSER
+        //     );
+        // }
 
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
@@ -210,11 +220,11 @@ define(function (require, exports, module) {
                     if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                         prefs.setValue("afterFirstLaunch", "true");
                         if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
-                            var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
-                            
-                            dirEntry.getFile("index.html", {}, function (fileEntry) {
-                                var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                                promise.pipe(deferred.resolve, deferred.reject);
+                            PlatformFileSystem.resolveNativeFileSystemPath(initialProjectPath, function(dirEntry){
+                                dirEntry.getFile("index.html", {}, function (fileEntry) {
+                                    var promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
+                                    promise.pipe(deferred.resolve, deferred.reject);
+                                }, deferred.reject);
                             }, deferred.reject);
                         } else {
                             deferred.resolve();
@@ -266,7 +276,7 @@ define(function (require, exports, module) {
         }
         
         // Localize MainViewHTML and inject into <BODY> tag
-        $("body").html(Mustache.render(MainViewHTML, Strings));
+        $("body").html(MainViewHTML(Strings));
         
         // Update title
         $("title").text(brackets.config.app_title);
@@ -328,3 +338,4 @@ define(function (require, exports, module) {
 
     $(window.document).ready(_onReady);
 });
+require(['brackets']);

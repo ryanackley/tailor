@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         KeyBindingManager   = require("command/KeyBindingManager"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        PlatformFileSystem    = require("file/PlatformFileSystem").PlatformFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
@@ -172,7 +172,7 @@ define(function (require, exports, module) {
                 .fail(function (fileError) {
                     FileUtils.showFileOpenError(fileError.name, fullPath).done(function () {
                         // For performance, we do lazy checking of file existence, so it may be in working set
-                        DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
+                        DocumentManager.removeFromWorkingSet(fullPath);
                         EditorManager.focusEditor();
                         result.reject();
                     });
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            NativeFileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
+            PlatformFileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
                 null, function (paths) {
                     var i;
                     
@@ -216,7 +216,7 @@ define(function (require, exports, module) {
                         // they still exist on disk (for faster opening)
                         var filesToOpen = [];
                         paths.forEach(function (file) {
-                            filesToOpen.push(new NativeFileSystem.FileEntry(file));
+                            filesToOpen.push(file);
                         });
                         DocumentManager.addListToWorkingSet(filesToOpen);
                         
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
     function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
         var result = new $.Deferred();
         var suggestedName = baseFileName + fileExt;
-        var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
+        
 
         result.progress(function attemptNewName(suggestedName, nextIndexToUse) {
             if (nextIndexToUse > 99) {
@@ -299,21 +299,25 @@ define(function (require, exports, module) {
                 result.resolve(suggestedName);
             };
             
-            if (isFolder) {
-                dirEntry.getDirectory(
-                    suggestedName,
-                    {},
-                    successCallback,
-                    errorCallback
-                );
-            } else {
-                dirEntry.getFile(
-                    suggestedName,
-                    {},
-                    successCallback,
-                    errorCallback
-                );
-            }
+            PlatformFileSystem.requestNativeFileSystem(dir, function(fs){
+                var dirEntry = fs.root;
+                if (isFolder) {
+                    dirEntry.getDirectory(
+                        suggestedName,
+                        {},
+                        successCallback,
+                        errorCallback
+                    );
+                } else {
+                    dirEntry.getFile(
+                        suggestedName,
+                        {},
+                        successCallback,
+                        errorCallback
+                    );
+                }
+            });
+            
         });
 
         //kick it off
@@ -407,7 +411,7 @@ define(function (require, exports, module) {
         if (docToSave && docToSave.isDirty) {
             var fileEntry = docToSave.file;
             var writeError = false;
-            
+            console.log(fileEntry.toURL());
             fileEntry.createWriter(
                 function (writer) {
                     writer.onwriteend = function () {
@@ -423,7 +427,7 @@ define(function (require, exports, module) {
                     };
 
                     // We don't want normalized line endings, so it's important to pass true to getText()
-                    writer.write(docToSave.getText(true));
+                    writer.write(new Blob([docToSave.getText(true)], {type: "text/plain;charset=UTF-8"}));
                 },
                 function (error) {
                     handleError(error, fileEntry);

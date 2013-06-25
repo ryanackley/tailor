@@ -59,7 +59,7 @@ define(function (require, exports, module) {
         });
 
         // Read file
-        reader = new NativeFileSystem.FileReader();
+        reader = new FileReader();
         fileEntry.file(function (file) {
             reader.onload = function (event) {
                 var text = event.target.result;

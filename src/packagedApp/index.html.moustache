@@ -33,13 +33,9 @@
          nonstandard WebKit-specific syntax. -->
     <link rel="stylesheet" href="styles/quiet-scrollbars.css">
 
-    <!-- Warn about failed cross origin requests in Chrome -->
-    <script src="xdomaincheck.js" type="application/javascript"></script>
-
     <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
-    <link rel="stylesheet" href="styles/brackets-less.css">
-    <!--<script src="thirdparty/less-1.3.0.min.js"></script>-->
-    <script src="thirdparty/mustache/mustache.js"></script>
+    <link rel="stylesheet" href="styles/{{mainCss}}">
+    <script src="thirdparty/less-1.3.0.min.js"></script>
     <!-- <link rel="stylesheet" href="brackets.min.css"> -->
 
     <!-- JavaScript -->
@@ -54,6 +50,15 @@
    
     <!-- JS for CodeMirror search support -->
     <script src="thirdparty/CodeMirror2/addon/search/searchcursor.js"></script>
+
+    
+    <script src="thirdparty/require.js"></script>
+    <script src="{{mainScript}}"></script>
+
+    <!--{{#extensions}}
+    <script src="{{src}}"></script>
+    {{/extensions}}-->
+    <script src="extensionBootstrap.js"></script>
       
 </head>
 <body>
@@ -65,11 +70,7 @@
     -->
     
     <!-- All other scripts are loaded through require. -->
-    <script src="thirdparty/require.js"></script>
-    <script src="brackets-out.js"></script>
 
-    <!-- Verify that all dependencies are loaded. -->
-    <script src="librarycheck.js"></script>
 
 </body>
 </html>

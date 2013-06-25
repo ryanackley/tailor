@@ -49,7 +49,7 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        PlatformFileSystem    = require("file/PlatformFileSystem").PlatformFileSystem,
         PreferencesDialogs  = require("preferences/PreferencesDialogs"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -781,9 +781,9 @@ define(function (require, exports, module) {
         _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
 
         // Populate file tree as long as we aren't running in the browser
-        if (!brackets.inBrowser) {
+        //if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
-            NativeFileSystem.requestNativeFileSystem(rootPath,
+            PlatformFileSystem.requestNativeFileSystem(rootPath,
                 function (fs) {
                     var rootEntry = fs.root;
                     var projectRootChanged = (!_projectRoot || !rootEntry) ||
@@ -845,16 +845,23 @@ define(function (require, exports, module) {
                         // project directory.
                         // TODO (issue #267): When Brackets supports having no project directory
                         // defined this code will need to change
-                        _loadProject(_getWelcomeProjectPath()).always(function () {
-                            // Make sure not to reject the original deferred until the fallback
-                            // project is loaded, so we don't violate expectations that there is always
-                            // a current project before continuing after _loadProject().
-                            result.reject();
+                        PlatformFileSystem.requestNativeFileSystem(null, function(fs){
+                            fs.root.getDirectory('brackets', {create:true}, function(){
+                                _loadProject('/brackets').always(function () {
+                                    // Make sure not to reject the original deferred until the fallback
+                                    // project is loaded, so we don't violate expectations that there is always
+                                    // a current project before continuing after _loadProject().
+                                    result.reject();
+                                });
+                            }, function(err){
+                                debugger;
+                            });
                         });
+                        
                     });
                 }
                 );
-        }
+        //}
 
         return result.promise();
     }
@@ -963,7 +970,7 @@ define(function (require, exports, module) {
                     _loadProject(path).pipe(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
-                    NativeFileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null,
+                    PlatformFileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null,
                         function (files) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {

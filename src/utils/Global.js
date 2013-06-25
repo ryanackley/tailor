@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     //
     // Taken from:
     //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
-    var Fn = Function, global = (new Fn("return this"))();
+    var Fn = Function, global = window || (new Fn("return this"))();
     if (!global.brackets) {
         global.brackets = {};
     }
@@ -78,25 +78,25 @@ define(function (require, exports, module) {
     }
     
     global.brackets.isLocaleDefault = function () {
-        return !global.localStorage.getItem("locale");
+        return true;//!global.localStorage.getItem("locale");
     };
     
     global.brackets.getLocale = function () {
         // By default use the locale that was determined in brackets.js
-        return global.localStorage.getItem("locale") || global.require.s.contexts._.config.locale;
+        return "en-US";//global.localStorage.getItem("locale") || global.require.s.contexts._.config.locale;
     };
 
     global.brackets.setLocale = function (locale) {
-        if (locale) {
-            global.localStorage.setItem("locale", locale);
-        } else {
-            global.localStorage.removeItem("locale");
-        }
+        // if (locale) {
+        //     global.localStorage.setItem("locale", locale);
+        // } else {
+        //     global.localStorage.removeItem("locale");
+        // }
     };
     
     // Create empty app namespace if running in-browser
     if (!global.brackets.app) {
-        global.brackets.app = {};
+        global.brackets.app = require("packagedApp/app");//{};
     }
     
     // Loading extensions requires creating new require.js contexts, which

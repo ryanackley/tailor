@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         Menus                   = brackets.getModule("command/Menus"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
-        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        PlatformFileSystem        = brackets.getModule("file/PlatformFileSystem").PlatformFileSystem,
         ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
     
     
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
                         var recentProjects = getRecentProjects(),
                             index = recentProjects.indexOf(path);
                         if (index !== -1) {
-                            NativeFileSystem.requestNativeFileSystem(path,
+                            PlatformFileSystem.requestNativeFileSystem(path,
                                 function () {},
                                 function () {
                                     recentProjects.splice(index, 1);

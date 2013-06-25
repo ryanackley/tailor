@@ -37,7 +37,7 @@ define(function (require, exports, module) {
     var DocumentManager     = brackets.getModule("document/DocumentManager"),
         LanguageManager     = brackets.getModule("language/LanguageManager"),
         FileUtils           = brackets.getModule("file/FileUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        PlatformFileSystem    = brackets.getModule("file/PlatformFileSystem").PlatformFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         HintUtils           = require("HintUtils"),
         Scope               = require("Scope");
@@ -141,8 +141,7 @@ define(function (require, exports, module) {
         // we might need to update the outer scope
         if (state.scope === null || state.dirtyFile) {
             if (!state.active) {
-                var path    = dir + file,
-                    entry   = new NativeFileSystem.FileEntry(path);
+                var path    = dir + file;
                 
                 // the outer scope worker is about to be active
                 state.active = true;
@@ -427,13 +426,13 @@ define(function (require, exports, module) {
             dir         = split.dir,
             file        = split.file;
 
-        NativeFileSystem.resolveNativeFileSystemPath(dir, function (dirEntry) {
+        PlatformFileSystem.resolveNativeFileSystemPath(dir, function (dirEntry) {
             var reader = dirEntry.createReader();
 
             markFileDirty(dir, file);
 
             reader.readEntries(function (entries) {
-                entries.slice(0, MAX_FILES_IN_DIR).forEach(function (entry) {
+                Array.prototype.slice.call(entries, 0, MAX_FILES_IN_DIR).forEach(function (entry) {
                     if (entry.isFile) {
                         var path    = entry.fullPath,
                             split   = HintUtils.splitPath(path),

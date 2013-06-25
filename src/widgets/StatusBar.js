@@ -11,7 +11,7 @@ define(function (require, exports, module) {
     'use strict';
     
     var AppInit         = require("utils/AppInit"),
-        StatusBarHTML   = require("text!widgets/StatusBar.html"),
+        StatusBarHTML   = require("hgn!widgets/StatusBar.html"),
         EditorManager   = require("editor/EditorManager"),
         Strings         = require("strings");
 
@@ -172,7 +172,7 @@ define(function (require, exports, module) {
     
     AppInit.htmlReady(function () {
         var $parent = $(".main-view .content");
-        $parent.append(Mustache.render(StatusBarHTML, Strings));
+        $parent.append(StatusBarHTML(Strings));
 
         // Initialize items dependent on HTML DOM
         $statusBar          = $("#status-bar");

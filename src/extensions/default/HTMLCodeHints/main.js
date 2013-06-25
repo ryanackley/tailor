@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         EditorManager       = brackets.getModule("editor/EditorManager"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        PlatformFileSystem    = brackets.getModule("file/PlatformFileSystem").PlatformFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
         StringUtils         = brackets.getModule("utils/StringUtils"),
         HTMLTags            = require("text!HtmlTags.json"),
@@ -268,7 +268,7 @@ define(function (require, exports, module) {
             self.cachedHints.deferred = $.Deferred();
             self.cachedHints.unfiltered = [];
 
-            NativeFileSystem.requestNativeFileSystem(targetDir, function (fs) {
+            PlatformFileSystem.requestNativeFileSystem(targetDir, function (fs) {
                 fs.root.createReader().readEntries(function (entries) {
 
                     entries.forEach(function (entry) {

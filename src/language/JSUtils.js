@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     var Async                   = require("utils/Async"),
         DocumentManager         = require("document/DocumentManager"),
         ChangedDocumentTracker  = require("document/ChangedDocumentTracker"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        PlatformFileSystem        = require("file/PlatformFileSystem").PlatformFileSystem,
         CollectionUtils         = require("utils/CollectionUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         StringUtils             = require("utils/StringUtils");
@@ -227,17 +227,19 @@ define(function (require, exports, module) {
             if (doc && doc.isDirty) {
                 result.resolve(false);
             } else {
+                var fileFail = function (error) {
+                    result.reject(error);
+                }
                 // If a cache exists, check the timestamp on disk
-                var file = new NativeFileSystem.FileEntry(fileInfo.fullPath);
-                
-                file.getMetadata(
-                    function (metadata) {
-                        result.resolve(fileInfo.JSUtils.timestamp === metadata.diskTimestamp);
-                    },
-                    function (error) {
-                        result.reject(error);
-                    }
-                );
+                //var file = new PlatformFileSystem.FileEntry(fileInfo.fullPath);
+                PlatformFileSystem.resolveNativeFileSystemPath(fileInfo.fullPath, function(file){
+                    file.getMetadata(
+                        function (metadata) {
+                            result.resolve(fileInfo.JSUtils.timestamp === metadata.diskTimestamp);
+                        },
+                        fileFail
+                    );
+                }, fileFail);
             }
         } else {
             // Use the cache if the file did not change and the cache exists

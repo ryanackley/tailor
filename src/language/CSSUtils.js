@@ -39,7 +39,6 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
         FileIndexManager    = require("project/FileIndexManager"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         TokenUtils          = require("utils/TokenUtils");
 
     // Constants

@@ -83,7 +83,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+    var PlatformFileSystem    = require("file/PlatformFileSystem").PlatformFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
@@ -180,7 +180,7 @@ define(function (require, exports, module) {
         list = list || _workingSet;
         
         return CollectionUtils.indexOf(list, function (file, i) {
-            return file.fullPath === fullPath;
+            return file === fullPath;
         });
     }
     
@@ -225,18 +225,18 @@ define(function (require, exports, module) {
         
         // Add to _workingSet making sure we store a different instance from the
         // one in the Document. See issue #1971 for more details.        
-        file = new NativeFileSystem.FileEntry(file.fullPath);
-        _workingSet.push(file);
+        var filePath = file.fullPath;
+        _workingSet.push(filePath);
         
         // Add to MRU order: either first or last, depending on whether it's already the current doc or not
         if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
-            _workingSetMRUOrder.unshift(file);
+            _workingSetMRUOrder.unshift(filePath);
         } else {
-            _workingSetMRUOrder.push(file);
+            _workingSetMRUOrder.push(filePath);
         }
         
         // Add first to Added order
-        _workingSetAddedOrder.unshift(file);
+        _workingSetAddedOrder.unshift(filePath);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetAdd", file);
@@ -255,14 +255,14 @@ define(function (require, exports, module) {
         // Process only files not already in working set
         fileList.forEach(function (file, index) {
             // If doc is already in working set, don't add it again
-            if (findInWorkingSet(file.fullPath) === -1) {
+            if (findInWorkingSet(file) === -1) {
                 uniqueFileList.push(file);
 
                 // Add
                 _workingSet.push(file);
 
                 // Add to MRU order: either first or last, depending on whether it's already the current doc or not
-                if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
+                if (_currentDocument && _currentDocument.file.fullPath === file) {
                     _workingSetMRUOrder.unshift(file);
                 } else {
                     _workingSetMRUOrder.push(file);
@@ -292,8 +292,8 @@ define(function (require, exports, module) {
         
         // Remove
         _workingSet.splice(index, 1);
-        _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
-        _workingSetAddedOrder.splice(findInWorkingSet(file.fullPath, _workingSetAddedOrder), 1);
+        _workingSetMRUOrder.splice(findInWorkingSet(file, _workingSetMRUOrder), 1);
+        _workingSetAddedOrder.splice(findInWorkingSet(file, _workingSetAddedOrder), 1);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", file);
@@ -994,8 +994,7 @@ define(function (require, exports, module) {
             getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
             // create a new document
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath),
-                perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+            var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
 
             result.done(function () {
                 PerfUtils.addMeasurement(perfTimerName);
@@ -1003,18 +1002,25 @@ define(function (require, exports, module) {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
 
-            FileUtils.readAsText(fileEntry)
-                .always(function () {
-                    // document is no longer pending
-                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                })
-                .done(function (rawText, readTimestamp) {
-                    doc = new Document(fileEntry, readTimestamp, rawText);
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
-                });
+
+            var fileFail = function (fileError) {
+                result.reject(fileError);
+            }
+
+            PlatformFileSystem.resolveNativeFileSystemPath(fullPath, function(fileEntry){
+                FileUtils.readAsText(fileEntry)
+                    .always(function () {
+                        // document is no longer pending
+                        delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                    })
+                    .done(function (rawText, readTimestamp) {
+                        doc = new Document(fileEntry, readTimestamp, rawText);
+                        result.resolve(doc);
+                    })
+                    .fail(fileFail);
+            }, fileFail);
+
+            
             
             return promise;
         }
@@ -1127,7 +1133,7 @@ define(function (require, exports, module) {
         // Add all files to the working set without verifying that
         // they still exist on disk (for faster project switching)
         files.forEach(function (value, index) {
-            filesToOpen.push(new NativeFileSystem.FileEntry(value.file));
+            filesToOpen.push(value.file);
             if (value.active) {
                 activeFile = value.file;
             }

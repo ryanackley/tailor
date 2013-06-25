@@ -49,8 +49,9 @@ define(function (require, exports, module) {
         Resizer                 = brackets.getModule("utils/Resizer"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         StatusBar               = brackets.getModule("widgets/StatusBar"),
-        JSLintTemplate          = require("text!htmlContent/bottom-panel.html"),
-        ResultsTemplate         = require("text!htmlContent/results-table.html");
+        JSLintTemplate          = require("hgn!htmlContent/bottom-panel.html"),
+        ResultsTemplate         = require("hgn!htmlContent/results-table.html"),
+        GoldStarTemplate        = require("hgn!htmlContent/gold-star.html");
     
     var KeyboardPrefs = JSON.parse(require("text!keyboard.json"));
     
@@ -130,7 +131,7 @@ define(function (require, exports, module) {
             if (!result) {
                 // Remove the null errors for the template
                 var errors = JSLINT.errors.filter(function (err) { return err !== null; });
-                var html   = Mustache.render(ResultsTemplate, {reportList: errors});
+                var html   = ResultsTemplate({reportList: errors});
                 var $selectedRow;
 
                 $lintResults.find(".table-container")
@@ -259,10 +260,10 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         ExtensionUtils.loadStyleSheet(module, "jslint.css");
         
-        var jsLintHtml = Mustache.render(JSLintTemplate, Strings);
+        var jsLintHtml = JSLintTemplate(Strings);
         $(jsLintHtml).insertBefore("#status-bar");
         
-        var goldStarHtml = Mustache.render("<div id=\"gold-star\" title=\"{{JSLINT_NO_ERRORS}}\">&#9733;</div>", Strings);
+        var goldStarHtml = GoldStarTemplate(Strings);
         $(goldStarHtml).insertBefore("#status-file");
         
         $lintResults = $("#jslint-results");

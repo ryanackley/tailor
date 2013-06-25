@@ -39,7 +39,7 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+    var PlatformFileSystem    = require("file/PlatformFileSystem").PlatformFileSystem,
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async");
     
@@ -54,7 +54,8 @@ define(function (require, exports, module) {
 
     var globalConfig = {
             "text" : srcPath + "/thirdparty/text",
-            "i18n" : srcPath + "/thirdparty/i18n"
+            "i18n" : srcPath + "/thirdparty/i18n",
+            "hgn"  : srcPath + "/thirdparty/hgn"
         };
     
     /**
@@ -95,8 +96,11 @@ define(function (require, exports, module) {
                 context: name,
                 baseUrl: config.baseUrl,
                 /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
-                paths: globalConfig,
-                locale: brackets.getLocale()
+                paths: config.paths || globalConfig,
+                locale: brackets.getLocale(),
+                hgn : {
+                    templateExtension : ""
+                }
             });
         contexts[name] = extensionRequire;
 
@@ -171,48 +175,58 @@ define(function (require, exports, module) {
     function _loadAll(directory, config, entryPoint, processExtension) {
         var result = new $.Deferred();
         
-        NativeFileSystem.requestNativeFileSystem(directory,
-            function (fs) {
-                fs.root.createReader().readEntries(
-                    function (entries) {
-                        var i,
-                            extensions = [];
-                        
-                        for (i = 0; i < entries.length; i++) {
-                            if (entries[i].isDirectory) {
-                                // FUTURE (JRB): read package.json instead of just using the entrypoint "main".
-                                // Also, load sub-extensions defined in package.json.
-                                extensions.push(entries[i].name);
-                            }
-                        }
-
-                        if (extensions.length === 0) {
-                            result.resolve();
-                            return;
-                        }
-                        
-                        Async.doInParallel(extensions, function (item) {
-                            var extConfig = {
-                                baseUrl: config.baseUrl + "/" + item,
-                                paths: config.paths
-                            };
-                            return processExtension(item, extConfig, entryPoint);
-                        }).always(function () {
-                            // Always resolve the promise even if some extensions had errors
-                            result.resolve();
-                        });
-                    },
-                    function (error) {
-                        console.error("[Extension] Error -- could not read native directory: " + directory);
-                        result.reject();
-                    }
-                );
-            },
-            function (error) {
-                console.error("[Extension] Error -- could not open native directory: " + directory);
-                result.reject();
+        var loadExtensions = function(extensions){
+            Async.doInParallel(extensions, function (item) {
+                var extConfig = {
+                    baseUrl: config.baseUrl + "/" + item,
+                    paths: config.paths
+                };
+                return processExtension(item, extConfig, entryPoint);
+            }).always(function () {
+                // Always resolve the promise even if some extensions had errors
+                result.resolve();
             });
-        
+        }
+
+        if (brackets.inBrowser){
+            window.setTimeout(function(){
+                result.resolve();
+            }, 0);
+        }
+        else{
+            PlatformFileSystem.requestNativeFileSystem(directory,
+                function (fs) {
+                    fs.root.createReader().readEntries(
+                        function (entries) {
+                            var i,
+                                extensions = [];
+                            
+                            for (i = 0; i < entries.length; i++) {
+                                if (entries[i].isDirectory) {
+                                    // FUTURE (JRB): read package.json instead of just using the entrypoint "main".
+                                    // Also, load sub-extensions defined in package.json.
+                                    extensions.push(entries[i].name);
+                                }
+                            }
+
+                            if (extensions.length === 0) {
+                                result.resolve();
+                                return;
+                            }
+                            loadExtensions(extensions);
+                            
+                        },
+                        function (error) {
+                            console.error("[Extension] Error -- could not read native directory: " + directory);
+                            result.reject();
+                        }
+                    );
+                },
+                function (error) {
+                    console.error("[Extension] Error -- could not open native directory: " + directory);
+                    result.reject();
+                });
+        }
         return result.promise();
     }
     
@@ -277,13 +291,12 @@ define(function (require, exports, module) {
         // If the directory *does* exist, nothing else needs to be done. It will be scanned normally
         // during extension loading.
         var extensionPath = getUserExtensionPath();
-        new NativeFileSystem.DirectoryEntry().getDirectory(extensionPath,
-                                                           {create: true});
-        
-        // Create the extensions/disabled directory, too.
         var disabledExtensionPath = extensionPath.replace(/\/user$/, "/disabled");
-        new NativeFileSystem.DirectoryEntry().getDirectory(disabledExtensionPath,
-                                                           {create: true});
+        PlatformFileSystem.requestNativeFileSystem('/', function(fs){
+            fs.root.getDirectory(extensionPath, {create: true});
+            fs.root.getDirectory(disabledExtensionPath, {create: true});
+        });
+        
         
         var promise = Async.doInParallel(paths.split(","), function (item) {
             var extensionPath = item;
