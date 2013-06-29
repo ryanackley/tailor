@@ -589,8 +589,6 @@ define(function (require, exports, module) {
                 PerfUtils.finalizeMeasurement(perfTimerName);
             });
 
-<<<<<<< HEAD
-
             var fileFail = function (fileError) {
                 result.reject(fileError);
             }
@@ -602,31 +600,15 @@ define(function (require, exports, module) {
                         delete getDocumentForPath._pendingDocumentPromises[fullPath];
                     })
                     .done(function (rawText, readTimestamp) {
-                        doc = new Document(fileEntry, readTimestamp, rawText);
+                        doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
+                                
+                        // This is a good point to clean up any old dangling Documents
+                        _gcDocuments();
+                        
                         result.resolve(doc);
                     })
                     .fail(fileFail);
             }, fileFail);
-
-            
-=======
-            FileUtils.readAsText(fileEntry)
-                .always(function () {
-                    // document is no longer pending
-                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
-                })
-                .done(function (rawText, readTimestamp) {
-                    doc = new DocumentModule.Document(fileEntry, readTimestamp, rawText);
-                            
-                    // This is a good point to clean up any old dangling Documents
-                    _gcDocuments();
-                    
-                    result.resolve(doc);
-                })
-                .fail(function (fileError) {
-                    result.reject(fileError);
-                });
->>>>>>> origin/master
             
             return promise;
         }

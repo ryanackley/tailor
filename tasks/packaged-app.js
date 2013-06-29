@@ -7,7 +7,7 @@ module.exports = function (grunt) {
         fs              = require("fs");
 
     grunt.registerTask("packaged-app", "Performs tasks necessary to run brackets as a packaged app", function () {
-        
+        debugger;
         var done = this.async(),
             mainJsName = "brackets-build.js",
             mainCssName = "brackets-less.css";
@@ -74,7 +74,7 @@ module.exports = function (grunt) {
                     //context: extensionDir,
                     name: "main",
                     paths: {
-                        text: "../../../thirdparty/text",
+                        text: "../../../thirdparty/text/text",
                         hgn: "../../../thirdparty/hgn",
                         hogan: "../../../thirdparty/hogan"
                     },

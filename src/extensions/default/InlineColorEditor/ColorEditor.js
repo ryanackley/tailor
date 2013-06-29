@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         Strings     = brackets.getModule("strings");
     
     /** Mustache template that forms the bare DOM structure of the UI */
-    var ColorEditorTemplate = require("text!ColorEditorTemplate.html");
+    var ColorEditorTemplate = require("hgn!ColorEditorTemplate.html");
     
     /** @const @type {number} */
     var STEP_MULTIPLIER = 5;
@@ -47,7 +47,7 @@ define(function (require, exports, module) {
      */
     function ColorEditor($parent, color, callback, swatches) {
         // Create the DOM structure, filling in localized strings via Mustache
-        this.$element = $(Mustache.render(ColorEditorTemplate, Strings));
+        this.$element = $(ColorEditorTemplate(Strings));
         $parent.append(this.$element);
         
         this._callback = callback;

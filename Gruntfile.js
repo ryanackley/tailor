@@ -152,7 +152,7 @@ module.exports = function (grunt) {
                 files: [
                     {expand: true, cwd: 'src/', src: ['styles/quiet-scrollbars.css', 'styles/jsTreeTheme.css'], dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: 'xdomaincheck.js', dest: 'packaged-app-build/' },
-                    {expand: true, cwd: 'src/', src: ['thirdparty/jquery-1.7.min.js', 'thirdparty/less-1.3.0.min.js', 'thirdparty/text.js'], dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: ['thirdparty/jquery-2.0.1.min.js', 'thirdparty/less-1.3.3.min.js'], dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/lib/codemirror.js', dest: 'packaged-app-build/' },
                     {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/edit/matchbrackets.js', dest: 'packaged-app-build/' },
                     {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/edit/closebrackets.js', dest: 'packaged-app-build/'},
@@ -160,13 +160,13 @@ module.exports = function (grunt) {
                     {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/selection/active-line.js', dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/search/searchcursor.js', dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/lib/codemirror.css', dest: 'packaged-app-build/'},
-                    {expand: true, cwd: 'src/', src: ['thirdparty/require.js', 'thirdparty/hgn.js', 'thirdparty/hogan.js', 'thirdparty/text.js', 'thirdparty/i18n.js'], dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/', src: ['thirdparty/requirejs/require.js', 'thirdparty/hgn.js', 'thirdparty/hogan.js', 'thirdparty/text/text.js', 'thirdparty/i18n/i18n.js'], dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: 'librarycheck.js', dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: ['styles/images/**', 'styles/fonts/**'], dest: 'packaged-app-build'},
                     {expand: true, cwd: 'src/', src: 'nls/**', dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/mode/**', dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/packagedApp/', src: ['manifest.json','background.js'], dest: 'packaged-app-build/'},
-                    {expand: true, cwd: 'src/extensions/default', src: ['**/thirdparty/**', '**/*.svg', '**/*.html', '**/*.css', 'JavaScriptCodeHints/parser-worker.js', 'JavaScriptCodeHints/Scope.js','JavaScriptCodeHints/HintUtils.js'], dest: 'packaged-app-build/extensions/'}
+                    {expand: true, cwd: 'src/extensions/default', src: ['**/thirdparty/**', '**/*.svg', '**/*.html', '**/*.css', 'JavaScriptCodeHints/tern-worker.js', 'JavaScriptCodeHints/MessageIds.js','JavaScriptCodeHints/HintUtils.js', 'ProjectFromGit/*.png'], dest: 'packaged-app-build/extensions/'}
                 ]
             }
         }

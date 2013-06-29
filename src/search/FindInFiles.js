@@ -59,9 +59,9 @@ define(function (require, exports, module) {
         StatusBar             = require("widgets/StatusBar"),
         ModalBar              = require("widgets/ModalBar").ModalBar;
     
-    var searchDialogTemplate  = require("text!htmlContent/search-dialog.html"),
-        searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
-        searchResultsTemplate = require("text!htmlContent/search-results.html");
+    var searchDialogTemplate  = require("hgn!htmlContent/search-dialog.html"),
+        searchPanelTemplate   = require("hgn!htmlContent/search-panel.html"),
+        searchResultsTemplate = require("hgn!htmlContent/search-results.html");
     
     /** @type {$.Element} jQuery elements used in the search results */
     var $searchResults,
@@ -168,7 +168,7 @@ define(function (require, exports, module) {
             value: initialString || "",
             label: _labelForScope(scope)
         };
-        var dialogHTML = Mustache.render(searchDialogTemplate, $.extend(templateVars, Strings));
+        var dialogHTML = searchDialogTemplate($.extend(templateVars, Strings));
         
         this.result = new $.Deferred();
         this.modalBar = new ModalBar(dialogHTML, false);
@@ -337,7 +337,7 @@ define(function (require, exports, module) {
             // Insert the search results
             $searchContent
                 .empty()
-                .append(Mustache.render(searchResultsTemplate, {searchList: searchList}))
+                .append(searchResultsTemplate({searchList: searchList}))
                 .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
             
             $searchResults.find(".close")
@@ -508,7 +508,7 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        var panelHtml = Mustache.render(searchPanelTemplate, Strings);
+        var panelHtml = searchPanelTemplate(Strings);
         searchResultsPanel = PanelManager.createBottomPanel("find-in-files.results", $(panelHtml));
         
         $searchResults = $("#search-results");

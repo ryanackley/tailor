@@ -2,8 +2,8 @@
     "name": "brackets",
     "optimize": "none", 
     "paths": {
-        "text"      : "thirdparty/text",
-        "i18n"      : "thirdparty/i18n",
+        "text"      : "thirdparty/text/text",
+        "i18n"      : "thirdparty/i18n/i18n",
         "hogan"     : "thirdparty/hogan",
         "hgn"       : "thirdparty/hgn"
     },

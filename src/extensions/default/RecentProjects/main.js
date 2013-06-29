@@ -40,8 +40,8 @@ define(function (require, exports, module) {
         Menus                   = brackets.getModule("command/Menus"),
         PopUpManager            = brackets.getModule("widgets/PopUpManager"),
         FileUtils               = brackets.getModule("file/FileUtils"),
-        PlatformFileSystem        = brackets.getModule("file/PlatformFileSystem").PlatformFileSystem,
-        ProjectsMenuTemplate    = require("text!htmlContent/projects-menu.html");
+        PlatformFileSystem      = brackets.getModule("file/PlatformFileSystem").PlatformFileSystem,
+        ProjectsMenuTemplate    = require("hgn!htmlContent/projects-menu.html");
     
     
     var $dropdownToggle,
@@ -251,7 +251,7 @@ define(function (require, exports, module) {
             }
         });
         
-        return Mustache.render(ProjectsMenuTemplate, templateVars);
+        return ProjectsMenuTemplate(templateVars);
     }
     
     /**

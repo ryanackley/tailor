@@ -826,6 +826,7 @@ define(function (require, exports, module) {
      */
 
     function _loadProject(rootPath, isUpdating) {
+        console.trace();
         if (!isUpdating) {
             if (_projectRoot && _projectRoot.fullPath === rootPath + "/") {
                 return (new $.Deferred()).resolve().promise();
@@ -904,33 +905,38 @@ define(function (require, exports, module) {
                     });
                 },
                 function (error) {
-                    Dialogs.showModalDialog(
-                        DefaultDialogs.DIALOG_ID_ERROR,
-                        Strings.ERROR_LOADING_PROJECT,
-                        StringUtils.format(
-                            Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                            StringUtils.breakableUrl(rootPath),
-                            error.name
-                        )
-                    ).done(function () {
-                        // The project folder stored in preference doesn't exist, so load the default 
-                        // project directory.
-                        // TODO (issue #267): When Brackets supports having no project directory
-                        // defined this code will need to change
-                        PlatformFileSystem.requestNativeFileSystem(null, function(fs){
-                            fs.root.getDirectory('brackets', {create:true}, function(){
-                                _loadProject('/brackets').always(function () {
-                                    // Make sure not to reject the original deferred until the fallback
-                                    // project is loaded, so we don't violate expectations that there is always
-                                    // a current project before continuing after _loadProject().
-                                    result.reject();
+                    if (isWelcomeProjectPath(rootPath) && welcomeMat){
+                       welcomeMat.launch();
+                    }
+                    else{
+                         Dialogs.showModalDialog(
+                            DefaultDialogs.DIALOG_ID_ERROR,
+                            Strings.ERROR_LOADING_PROJECT,
+                            StringUtils.format(
+                                Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
+                                StringUtils.breakableUrl(rootPath),
+                                error.name
+                            )
+                        ).done(function () {
+                            // The project folder stored in preference doesn't exist, so load the default 
+                            // project directory.
+                            // TODO (issue #267): When Brackets supports having no project directory
+                            // defined this code will need to change
+                            PlatformFileSystem.requestNativeFileSystem(null, function(fs){
+                                fs.root.getDirectory('brackets', {create:true}, function(){
+                                    _loadProject('/brackets').always(function () {
+                                        // Make sure not to reject the original deferred until the fallback
+                                        // project is loaded, so we don't violate expectations that there is always
+                                        // a current project before continuing after _loadProject().
+                                        result.reject();
+                                    });
+                                }, function(err){
+                                    debugger;
                                 });
-                            }, function(err){
-                                debugger;
                             });
+                            
                         });
-                        
-                    });
+                    }
                 }
                 );
         //}
@@ -1516,6 +1522,11 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    var welcomeMat;
+    function registerWelcomeMat(mat){
+        welcomeMat = mat;
+    }
+
     /**
      * Forces createNewItem() to complete by removing focus from the rename field which causes
      * the new file to be written to disk
@@ -1538,6 +1549,7 @@ define(function (require, exports, module) {
         projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
     };
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
+    _prefs.setValue("projectPath", defaults.projectPath);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
 
@@ -1551,6 +1563,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_FILE_REFRESH,     Commands.FILE_REFRESH, refreshFileTree);
 
     // Define public API
+    exports.registerWelcomeMat       = registerWelcomeMat;
     exports.getProjectRoot           = getProjectRoot;
     exports.getBaseUrl               = getBaseUrl;
     exports.setBaseUrl               = setBaseUrl;

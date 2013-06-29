@@ -35,7 +35,7 @@ define(function (require, exports, module) {
         KeyBindingManager = require("command/KeyBindingManager"),
         KeyEvent          = require("utils/KeyEvent");
     
-    var CodeHintListHTML  = require("text!htmlContent/code-hint-list.html");
+    var CodeHintListHTML  = require("hgn!htmlContent/code-hint-list.html");
 
     /**
      * Displays a popup list of hints for a given editor context.
@@ -193,7 +193,7 @@ define(function (require, exports, module) {
                 $parent = $ul.parent();
             
             // remove list temporarily to save rendering time
-            $ul.remove().append(Mustache.render(CodeHintListHTML, view));
+            $ul.remove().append(CodeHintListHTML(view));
             
             $ul.children("li").each(function (index, element) {
                 var hint        = self.hints[index],

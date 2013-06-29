@@ -1,6 +1,7 @@
 Thumbs.db
 src/brackets.css
 src/brackets.min.css
+/packaged-app-build
 
 # ignore jenkins build info
 /build.prop

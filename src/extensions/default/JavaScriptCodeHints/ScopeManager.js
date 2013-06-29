@@ -44,7 +44,10 @@ define(function (require, exports, module) {
         FileIndexManager    = brackets.getModule("project/FileIndexManager"),
         HintUtils           = require("HintUtils"),
         MessageIds          = require("MessageIds"),
-        Preferences         = require("Preferences");
+        Preferences         = require("Preferences"),
+        Ecma5Json           = require("text!thirdparty/tern/defs/ecma5.json"),
+        BrowserJson         = require("text!thirdparty/tern/defs/browser.json"),
+        JqueryJson          = require("text!thirdparty/tern/defs/jquery.json");
     
     var ternEnvironment     = [],
         pendingTernRequests = {},
@@ -75,23 +78,29 @@ define(function (require, exports, module) {
      * Read in the json files that have type information for the builtins, dom,etc
      */
     function initTernEnv() {
-        var path = ExtensionUtils.getModulePath(module, "thirdparty/tern/defs/"),
-            files = builtinFiles,
-            library;
-
-        files.forEach(function (i) {
-            PlatformFileSystem.resolveNativeFileSystemPath(path + i, function (fileEntry) {
-                FileUtils.readAsText(fileEntry).done(function (text) {
-                    library = JSON.parse(text);
-                    builtinLibraryNames.push(library["!name"]);
-                    ternEnvironment.push(library);
-                }).fail(function (error) {
-                    console.log("failed to read tern config file " + i);
-                });
-            }, function (error) {
-                console.log("failed to read tern config file " + i);
-            });
+        var defs = [Ecma5Json, BrowserJson, JqueryJson];
+        defs.forEach(function(def){
+            var library = JSON.parse(def);
+            builtinLibraryNames.push(library["!name"]);
+            ternEnvironment.push(library);
         });
+        // var path = ExtensionUtils.getModulePath(module, "thirdparty/tern/defs/"),
+        //     files = builtinFiles,
+        //     library;
+
+        // files.forEach(function (i) {
+        //     PlatformFileSystem.resolveNativeFileSystemPath(path + i, function (fileEntry) {
+        //         FileUtils.readAsText(fileEntry).done(function (text) {
+        //             library = JSON.parse(text);
+        //             builtinLibraryNames.push(library["!name"]);
+        //             ternEnvironment.push(library);
+        //         }).fail(function (error) {
+        //             console.log("failed to read tern config file " + i);
+        //         });
+        //     }, function (error) {
+        //         console.log("failed to read tern config file " + i);
+        //     });
+        // });
     }
 
     initTernEnv();
@@ -189,7 +198,7 @@ define(function (require, exports, module) {
             var reader = dirEntry.createReader();
 
             reader.readEntries(function (entries) {
-                entries.slice(0, preferences.getMaxFileCount()).forEach(function (entry) {
+                Array.prototype.slice.call(entries, 0, preferences.getMaxFileCount()).forEach(function (entry) {
                     var path    = entry.fullPath,
                         split   = HintUtils.splitPath(path),
                         file    = split.file;
@@ -974,7 +983,7 @@ define(function (require, exports, module) {
     
                     if (!stopAddingFiles) {
                         dirs.forEach(function (path) {
-                            var dir = HintUtils.splitPath(path).dir;
+                            var dir = path;//HintUtils.splitPath(path).dir;
                             if (!stopAddingFiles) {
                                 numDirectoriesLeft++;
                                 addAllFilesRecursively(dir, successCallback);

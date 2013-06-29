@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         KeyEvent          = require("utils/KeyEvent"),
         NativeApp         = require("utils/NativeApp"),
         Strings           = require("strings"),
-        DialogTemplate    = require("text!htmlContent/dialog-template.html");
+        DialogTemplate    = require("hgn!htmlContent/dialog-template.html");
     
     /**
      * Dialog Buttons IDs
@@ -269,7 +269,7 @@ define(function (require, exports, module) {
             message:  message || "",
             buttons:  buttons || [{ className: DIALOG_BTN_CLASS_PRIMARY, id: DIALOG_BTN_OK, text: Strings.OK }]
         };
-        var template = Mustache.render(DialogTemplate, templateVars);
+        var template = DialogTemplate(templateVars);
         
         return showModalDialogUsingTemplate(template);
     }

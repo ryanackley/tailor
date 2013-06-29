@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         ProjectManager         = require("project/ProjectManager"),
         StringUtils            = require("utils/StringUtils"),
         Strings                = require("strings"),
-        SettingsDialogTemplate = require("text!htmlContent/project-settings-dialog.html");
+        SettingsDialogTemplate = require("hgn!htmlContent/project-settings-dialog.html");
 
     /**
      * Validate that text string is a valid base url which should map to a server folder
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
             Strings      : Strings
         };
         
-        dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(SettingsDialogTemplate, templateVars));
+        dialog = Dialogs.showModalDialogUsingTemplate(SettingsDialogTemplate(templateVars));
         
         dialog.done(function (id) {
             if (id === Dialogs.DIALOG_BTN_OK) {
