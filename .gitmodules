@@ -25,3 +25,6 @@
 [submodule "src/thirdparty/i18n"]
 	path = src/thirdparty/i18n
 	url = https://github.com/requirejs/i18n.git
+[submodule "src/extensions/default/ProjectFromGit/thirdparty/gitlite.js"]
+	path = src/extensions/default/ProjectFromGit/thirdparty/gitlite.js
+	url = https://github.com/ryanackley/gitlite.js.git
