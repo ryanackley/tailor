@@ -165,7 +165,7 @@ module.exports = function (grunt) {
                     {expand: true, cwd: 'src/', src: ['styles/images/**', 'styles/fonts/**'], dest: 'packaged-app-build'},
                     {expand: true, cwd: 'src/', src: 'nls/**', dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/mode/**', dest: 'packaged-app-build/'},
-                    {expand: true, cwd: 'src/packagedApp/', src: ['manifest.json','background.js'], dest: 'packaged-app-build/'},
+                    {expand: true, cwd: 'src/packagedApp/', src: ['manifest.json','background.js', 'underscore-min.js'], dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/extensions/default', src: ['**/thirdparty/**', '**/*.svg', '**/*.html', '**/*.css', 'JavaScriptCodeHints/tern-worker.js', 'JavaScriptCodeHints/MessageIds.js','JavaScriptCodeHints/HintUtils.js', 'ProjectFromGit/*.png'], dest: 'packaged-app-build/extensions/'}
                 ]
             }

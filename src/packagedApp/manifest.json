@@ -7,5 +7,5 @@
       "scripts": ["background.js"]
     }
   },
-  "permissions" : ["storage", "fileSystem", "fileSystem.write", "unlimitedStorage"]
+  "permissions" : ["http://*/", "https://*/","storage", "fileSystem", "fileSystem.write", "unlimitedStorage"]
 }

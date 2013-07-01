@@ -89,6 +89,7 @@ module.exports = function (grunt) {
                 requirejs.optimize(config, function(resp){
                     deferred.resolve();
                 }, function(err){
+                    grunt.log.writeln(err);
                     deferred.reject(err);
                 });
                 return deferred.promise;

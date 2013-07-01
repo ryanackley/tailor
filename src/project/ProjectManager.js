@@ -907,6 +907,7 @@ define(function (require, exports, module) {
                 function (error) {
                     if (isWelcomeProjectPath(rootPath) && welcomeMat){
                        welcomeMat.launch();
+                       result.reject();
                     }
                     else{
                          Dialogs.showModalDialog(
