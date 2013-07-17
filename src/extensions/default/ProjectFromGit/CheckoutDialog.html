@@ -1,0 +1,28 @@
+<div class="git-checkout-dialog modal">
+    <div class="modal-header">
+        <h1 class="dialog-title">Checkout local branch</h1>
+    </div>
+    <div class="modal-body">
+        <label></label>
+        <div class="control-group">
+            <label class="control-label">Current Branch</label>
+            <div class="controls">
+              <span class="uneditable-input">{{currentBranch}}</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="inputNewBranch">New Branch</label>
+            <div class="controls">
+              <select id="inputNewBranch">
+                {{#branches}}
+                  <option>{{.}}</option>
+                {{/branches}}
+              </select>
+            </div>
+          </div>
+    </div>
+    <div class="modal-footer">
+        <button class="dialog-button btn primary" data-button-id="ok">OK</button>
+        <button class="dialog-button btn" data-button-id="cancel">Cancel</button>
+    </div>
+</div>

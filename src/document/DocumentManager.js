@@ -686,13 +686,13 @@ define(function (require, exports, module) {
 
         workingSet.forEach(function (file, index) {
             // flag the currently active editor
-            isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
+            isActive = currentDoc && (file === currentDoc.file.fullPath);
             
             // save editor UI state for just the working set
-            var viewState = EditorManager._getViewState(file.fullPath);
+            var viewState = EditorManager._getViewState(file);
             
             files.push({
-                file: file.fullPath,
+                file: file,
                 active: isActive,
                 viewState: viewState
             });
@@ -730,7 +730,9 @@ define(function (require, exports, module) {
                 viewStates[value.file] = value.viewState;
             }
         });
+        $(exports).triggerHandler("workingSetSort", []);
         addListToWorkingSet(filesToOpen);
+
         
         // Allow for restoring saved editor UI state
         EditorManager._resetViewStates(viewStates);

@@ -1,9 +1,9 @@
 //hack to load the chrome.storage stuff first.
-if (chrome && chrome.storage){
-    chrome.storage.local.get(null, function(data){
-        chromeStorageObj = data || {};
-    });
-}
+// if (chrome && chrome.storage){
+//     chrome.storage.local.get(null, function(data){
+//         chromeStorageObj = data || {};
+//     });
+// }
 
 define(function (require, exports, module) {
     //var storageObj;

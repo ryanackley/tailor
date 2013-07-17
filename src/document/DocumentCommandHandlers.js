@@ -471,8 +471,13 @@ define(function (require, exports, module) {
                     writer.onwriteend = function () {
                         // Per spec, onwriteend is called after onerror too
                         if (!writeError) {
-                            docToSave.notifySaved();
-                            result.resolve();
+                            if (writer.position < writer.length){
+                                writer.truncate(writer.position);
+                            }
+                            else{
+                                docToSave.notifySaved();
+                                result.resolve();
+                            }
                         }
                     };
                     writer.onerror = function (error) {
@@ -835,7 +840,7 @@ define(function (require, exports, module) {
         
         var unsavedDocs = [];
         DocumentManager.getWorkingSet().forEach(function (file) {
-            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+            var doc = DocumentManager.getOpenDocumentForPath(file);
             if (doc && doc.isDirty) {
                 unsavedDocs.push(doc);
             }

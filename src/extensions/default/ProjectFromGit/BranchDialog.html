@@ -1,10 +1,10 @@
-<div class="git-blank-dialog modal">
+<div class="git-branch-dialog modal">
     <div class="modal-header">
-        <h1 class="dialog-title">Create a New Project</h1>
+        <h1 class="dialog-title">Create a New Local Branch</h1>
     </div>
     <div class="modal-body">
-        <label>Specify a project name</label>
-        <input type="text" id="inputProjectName" placeholder="New Project Name">
+        <label>Create a local branch from the HEAD commit on branch "<em>{{currentBranch}}</em>"</label>
+        <input type="text" id="inputBranch" placeholder="New Branch Name">
         <span class="help-block" style="color:red;display:none;"></span>
     </div>
     <div class="modal-footer">

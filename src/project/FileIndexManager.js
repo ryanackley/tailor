@@ -218,7 +218,7 @@ define(function (require, exports, module) {
                 // success callback
                 function (entries) {
                     // inspect all children of dirEntry
-                    entries.forEach(function (entry) {
+                    Array.prototype.forEach.call(entries, function (entry) {
                         // For now limit the number of files that are indexed by preventing adding files
                         // or scanning additional directories once a max has been hit. Also notify the 
                         // user once via a dialog. This limit could be increased

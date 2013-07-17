@@ -364,6 +364,11 @@ define(function (require, exports, module) {
     function _createNewListItem(file) {
         var curDoc = DocumentManager.getCurrentDocument();
 
+        if (typeof(file) == "string"){
+            var fileParts = file.split('/');
+            file = {fullPath: file, name: fileParts[fileParts.length - 1]};
+        }
+
         // Create new list item with a link
         var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));
         var $newItem = $("<li></li>")

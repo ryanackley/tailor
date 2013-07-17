@@ -964,6 +964,9 @@ define(function (require, exports, module) {
         var treeAPI = $.jstree._reference(_projectTree);
         
         // We're going to traverse from root of tree, one segment at a time
+        if (projRelativePath.charAt(0) == '/'){
+            projRelativePath = projRelativePath.substring(1);
+        }
         var pathSegments = projRelativePath.split("/");
         if (entry.isDirectory) {
             pathSegments.pop();  // DirectoryEntry always has a trailing "/"
@@ -1550,7 +1553,7 @@ define(function (require, exports, module) {
         projectPath:      _getWelcomeProjectPath()  /* initialize to welcome project */
     };
     _prefs = PreferencesManager.getPreferenceStorage(module, defaults);
-    _prefs.setValue("projectPath", defaults.projectPath);
+    //_prefs.setValue("projectPath", defaults.projectPath);
     //TODO: Remove preferences migration code
     PreferencesManager.handleClientIdChange(_prefs, "com.adobe.brackets.ProjectManager");
 

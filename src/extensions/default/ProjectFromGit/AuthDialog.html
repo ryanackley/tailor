@@ -1,6 +1,6 @@
-<div class="git-import-dialog modal">
+<div class="git-auth-dialog modal">
     <div class="modal-header">
-        <h1 class="dialog-title">{{title}}</h1>
+        <h1 class="dialog-title">Authentication required for "{{realm}}"</h1>
     </div>
     <div class="modal-body">
         <!-- <div class="field-container">
@@ -9,13 +9,6 @@
             </label>
          </div> -->
          <form class="form-horizontal">
-         <div class="control-group">
-            <label class="control-label">Remote Git Url</label>
-            <div class="controls">
-              <input type="text" placeholder="https://hostname/repo.git" value="" class="url input-xlarge" />
-            </div>
-            <span class="help-block" style="color:red;display:none;"></span>
-          </div>
           <div class="control-group">
             <label class="control-label" for="inputUsername">Username</label>
             <div class="controls">
@@ -32,6 +25,6 @@
     </div>
     <div class="modal-footer">
         <button class="dialog-button btn primary" data-button-id="ok">OK</button>
-        <button class="dialog-button btn" data-button-id="back">Back</button>
+        <button class="dialog-button btn" data-button-id="cancel">Cancel</button>
     </div>
 </div>

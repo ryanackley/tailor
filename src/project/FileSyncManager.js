@@ -114,7 +114,7 @@ define(function (require, exports, module) {
                 },
                 function (error) {
                     // File has been deleted externally
-                    if (error.name === NativeFileError.NOT_FOUND_ERR) {
+                    if (error.code === FileError.NOT_FOUND_ERR || error.name === NativeFileError.NOT_FOUND_ERR) {
                         if (doc.isDirty) {
                             deleteConflicts.push(doc);
                         } else {
@@ -143,29 +143,30 @@ define(function (require, exports, module) {
     function syncUnopenWorkingSet() {
         // We only care about working set entries that have never been open (have no Document).
         var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
-            return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
+            return !DocumentManager.getOpenDocumentForPath(wsFile);
         });
         
         function checkWorkingSetFile(file) {
             var result = new $.Deferred();
             
-            file.getMetadata(
-                function (metadata) {
-                    // File still exists
-                    result.resolve();
-                },
-                function (error) {
-                    // File has been deleted externally
-                    if (error.name === NativeFileError.NOT_FOUND_ERR) {
-                        DocumentManager.notifyFileDeleted(file);
-                        result.resolve();
-                    } else {
-                        // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking for deletion of " + file.fullPath, error.name);
-                        result.reject();
-                    }
-                }
-            );
+            // file.getMetadata(
+            //     function (metadata) {
+            //         // File still exists
+            //         result.resolve();
+            //     },
+            //     function (error) {
+            //         // File has been deleted externally
+            //         if (error.name === NativeFileError.NOT_FOUND_ERR) {
+            //             DocumentManager.notifyFileDeleted(file);
+            //             result.resolve();
+            //         } else {
+            //             // Some other error fetching metadata: treat as a real error
+            //             console.log("Error checking for deletion of " + file.fullPath, error.name);
+            //             result.reject();
+            //         }
+            //     }
+            // );
+            result.resolve();
             return result.promise();
         }
         
