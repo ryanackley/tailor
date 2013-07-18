@@ -97,7 +97,7 @@ module.exports = function (grunt) {
             }
             
             // extensionScripts.push({src: path.join('extensions', extensionDir, 'main-built.js')});
-            if (fs.statSync(path.join(process.cwd(), "src/extensions/default", extensionDir)).isDirectory() && extensionDir != 'DebugCommands'){
+            if (fs.statSync(path.join(process.cwd(), "src/extensions/default", extensionDir)).isDirectory() && extensionDir != 'DebugCommands' && extensionDir != 'StaticServer'){
                 funcs.push(optimizeExtension());
                 extensionScripts.push({name: extensionDir, baseUrl: 'extensions/' + extensionDir});
             }

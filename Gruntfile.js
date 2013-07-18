@@ -139,11 +139,11 @@ module.exports = function (grunt) {
                 jshintrc: '.jshintrc'
             }
         },
-        shell: {
-            repo: grunt.option("shell-repo") || "../brackets-shell",
-            mac: "<%= shell.repo %>/installer/mac/staging/<%= pkg.name %>.app",
-            win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe"
-        },
+        // shell: {
+        //     repo: grunt.option("shell-repo") || "../brackets-shell",
+        //     mac: "<%= shell.repo %>/installer/mac/staging/<%= pkg.name %>.app",
+        //     win: "<%= shell.repo %>/installer/win/staging/<%= pkg.name %>.exe"
+        // },
         clean: {
             packagedApp : ["packaged-app-build"]
         },
@@ -153,12 +153,7 @@ module.exports = function (grunt) {
                     {expand: true, cwd: 'src/', src: ['styles/quiet-scrollbars.css', 'styles/jsTreeTheme.css'], dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: 'xdomaincheck.js', dest: 'packaged-app-build/' },
                     {expand: true, cwd: 'src/', src: ['thirdparty/jquery-2.0.1.min.js', 'thirdparty/less-1.3.3.min.js'], dest: 'packaged-app-build/'},
-                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/lib/codemirror.js', dest: 'packaged-app-build/' },
-                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/edit/matchbrackets.js', dest: 'packaged-app-build/' },
-                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/edit/closebrackets.js', dest: 'packaged-app-build/'},
-                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/edit/closetag.js', dest: 'packaged-app-build/'},
-                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/selection/active-line.js', dest: 'packaged-app-build/'},
-                    {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/addon/search/searchcursor.js', dest: 'packaged-app-build/'},
+
                     {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/lib/codemirror.css', dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: ['thirdparty/requirejs/require.js', 'thirdparty/hgn.js', 'thirdparty/hogan.js', 'thirdparty/text/text.js', 'thirdparty/i18n/i18n.js'], dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: 'librarycheck.js', dest: 'packaged-app-build/'},
@@ -166,8 +161,18 @@ module.exports = function (grunt) {
                     {expand: true, cwd: 'src/', src: 'nls/**', dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/', src: 'thirdparty/CodeMirror2/mode/**', dest: 'packaged-app-build/'},
                     {expand: true, cwd: 'src/packagedApp/', src: ['chromeStorageLoad.js', 'manifest.json','background.js', 'underscore-min.js'], dest: 'packaged-app-build/'},
-                    {expand: true, cwd: 'src/extensions/default', src: ['**/thirdparty/**', '**/*.svg', '**/*.html', '**/*.css', 'JavaScriptCodeHints/tern-worker.js', 'JavaScriptCodeHints/MessageIds.js','JavaScriptCodeHints/HintUtils.js', 'ProjectFromGit/*.png'], dest: 'packaged-app-build/extensions/'}
+                    {expand: true, cwd: 'src/extensions/default', src: ['**/InlinColorEditor/thirdparty/**','**/JavaScriptCodeHints/thirdparty/**', '**/JSLint/thirdparty/**', '**/*.svg', '**/*.html', '**/*.css', 'JavaScriptCodeHints/tern-worker.js', 'JavaScriptCodeHints/MessageIds.js','JavaScriptCodeHints/HintUtils.js', 'ProjectFromGit/*.png'], dest: 'packaged-app-build/extensions/'}
                 ]
+            }
+        },
+        shell: {
+            optimizeCodeMirror : {
+                command: 'bin/compress --local ../../../node_modules/uglify-js/bin/uglifyjs codemirror closebrackets closetag matchbrackets searchcursor active-line clike clojure coffeescript css diff haxe htmlembedded htmlmixed javascript less lua markdown perl php python ruby sass shell sql xml yaml > ../../../packaged-app-build/codemirror.min.js',
+                options: {
+                    execOptions: {
+                        cwd: 'src/thirdparty/CodeMirror2'
+                    }
+                }
             }
         }
     });
@@ -180,6 +185,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-jasmine-node');
+    grunt.loadNpmTasks('grunt-shell');
+
     // task: install
     grunt.registerTask('install', ['write-config']);
 
@@ -192,7 +199,7 @@ module.exports = function (grunt) {
     // Update sprint number in package.json and rewrite src/config.json
     grunt.registerTask('set-sprint', ['update-sprint-number', 'write-config']);
 
-    grunt.registerTask('package', ['clean:packagedApp', 'packaged-app', 'copy:packagedApp']);
+    grunt.registerTask('package', ['clean:packagedApp', 'packaged-app', 'copy:packagedApp', 'shell:optimizeCodeMirror']);
 
     // Default task.
     grunt.registerTask('default', ['test']);

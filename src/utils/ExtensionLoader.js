@@ -177,6 +177,14 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    var loadAllResult;
+    function notifyPluginsLoaded(){
+        if (!loadAllResult){
+            loadAllResult = new $.Deferred()
+        }
+        loadAllResult.resolve();
+    }
+
     /**
      * @private
      * Loads a file entryPoint from each extension folder within the baseUrl into its own Require.js context
@@ -205,9 +213,13 @@ define(function (require, exports, module) {
         }
 
         if (brackets.inBrowser){
-            window.setTimeout(function(){
-                result.resolve();
-            }, 0);
+            // Loaded from a generated script
+            if (loadAllResult){
+                result = loadAllResult;
+            }
+            else{
+                loadAllResult = result;
+            }
         }
         else{
             PlatformFileSystem.requestNativeFileSystem(directory,
@@ -341,4 +353,5 @@ define(function (require, exports, module) {
     exports.testExtension = testExtension;
     exports.loadAllExtensionsInNativeDirectory = loadAllExtensionsInNativeDirectory;
     exports.testAllExtensionsInNativeDirectory = testAllExtensionsInNativeDirectory;
+    exports.notifyPluginsLoaded = notifyPluginsLoaded;
 });

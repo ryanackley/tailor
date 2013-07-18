@@ -1,5 +1,5 @@
 (function(){
-    require(["brackets", "utils/ExtensionLoader"], function(brackets, extensionLoader){
+    require(["brackets", "utils/ExtensionLoader", "utils/Async"], function(brackets, extensionLoader, Async){
         
         var paths = {
             "text" : "../../thirdparty/text/text",
@@ -8,8 +8,29 @@
             "hogan": "../../thirdparty/hogan"
         };
 
+        var extensions = [];
+        var processItem = function(item){
+            if (item.name == "ProjectFromGit"){
+                extensionLoader.loadExtension(item.name, item.data, item.module).always(function(){
+                    extensionLoader.notifyPluginsLoaded();
+                });
+            
+            }
+            else{
+                extensions.push(item);
+            }
+        }
+
+       
         {{#extensions}}
-        extensionLoader.loadExtension("{{name}}", { baseUrl: "{{baseUrl}}", paths: paths}, "main");
+        var item  = {name:"{{name}}", data: { baseUrl: "{{baseUrl}}", paths: paths}, module: "main"};
+        processItem(item);
         {{/extensions}}
+
+        Async.doInParallel(extensions, function (item) {
+            return extensionLoader.loadExtension(item.name, item.data, item.module);
+        }).always(function(){
+            //extensionLoader.notifyPluginsLoaded();
+        });
     });
 })();

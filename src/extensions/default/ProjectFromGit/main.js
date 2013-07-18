@@ -31,6 +31,9 @@ define(function (require, exports, module) {
         chrome.storage.local.set({git : gitSettings});
     }
 
+    $(document.body).on('click', '.git-cancel', function(e){
+        Dialogs.cancelModalDialogIfOpen('modal');
+    });
 
     function dirNameForGitUrl(path) {
         var index   = path.lastIndexOf("/"),
@@ -90,7 +93,7 @@ define(function (require, exports, module) {
         });
     }
 
-    function newBlankProject(fromWelcomMage){
+    function newBlankProject(fromWelcomeMat){
         Dialogs.cancelModalDialogIfOpen("new-project-dialog");
         Dialogs.showModalDialogUsingTemplate(BlankProjectTemplate(), false);
 
@@ -115,6 +118,13 @@ define(function (require, exports, module) {
                 });
             }
 
+        });
+
+        $('.git-blank-dialog .git-create-cancel').click(function(e){
+            Dialogs.cancelModalDialogIfOpen("modal");
+            if (fromWelcomeMat){
+                promptForNewProject(fromWelcomeMat);
+            }
         });
     }
 
@@ -161,11 +171,11 @@ define(function (require, exports, module) {
         // Dialogs.showModalDialogUsingTemplate(GitImportTemplate({title: "Import from Git"}), false);
 
         // $('.git-import-dialog button[data-button-id="ok"]').click(doGitImport);
-        showAndValidateGitRemoteSetup("Git Import", doGitImport);
+        showAndValidateGitRemoteSetup("Git Import", fromWelcomeMat, doGitImport);
     }
 
 
-    function showAndValidateGitRemoteSetup(title, callback){
+    function showAndValidateGitRemoteSetup(title, fromWelcomeMat, callback){
         Dialogs.cancelModalDialogIfOpen("modal");
         Dialogs.showModalDialogUsingTemplate(GitImportTemplate({title: title}), false);
 
@@ -181,22 +191,30 @@ define(function (require, exports, module) {
                 callback({url: gitRepoUrl, username: username, password: password});
             }
         });
+
+        $('.git-import-dialog .git-create-cancel').click(function(e){
+            Dialogs.cancelModalDialogIfOpen("modal");
+            if (fromWelcomeMat){
+                promptForNewProject(true);
+            }
+        });
     }
 
     function promptForNewProject(fromWelcomeMat){
-        Dialogs.showModalDialogUsingTemplate(NewProjectTemplate(), false);
+        var cancelable = !fromWelcomeMat;
+        Dialogs.showModalDialogUsingTemplate(NewProjectTemplate({cancelable: cancelable}), false);
 
         $('.git-import-btn').one('click', function(){
-            promptForGitImport();
+            promptForGitImport(fromWelcomeMat);
         });
         $('.new-project-btn').one('click', function(){
-            newBlankProject();
+            newBlankProject(fromWelcomeMat);
         });
     }
 
     var welcomeMat = {
         launch: function(){
-            promptForNewProject();
+            promptForNewProject(true);
         }
     }
 
@@ -218,6 +236,8 @@ define(function (require, exports, module) {
             GitApi.pull({dir: dir, username: settings.username, password: settings.password}, function(){
                 Dialogs.cancelModalDialogIfOpen('git-progress');
                 Dialogs.showModalDialog('git-pull-success', 'Pull successful', 'The pull was successful');
+                ProjectManager.refreshFileTree();
+                refreshOpenEditors();
             },pullError)
         }
         CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true }).done(function () {
@@ -260,7 +280,7 @@ define(function (require, exports, module) {
                 Dialogs.showModalDialog('git-push-success', 'Push successful', 'The push was successful');
             }, function(e){
                 if (e.type == GitApi.PUSH_NO_REMOTE){
-                    showAndValidateGitRemoteSetup("Push to a Remote Git Repo", function(options){
+                    showAndValidateGitRemoteSetup("Push to a Remote Git Repo", false, function(options){
                         var gitRepoUrl = options.url,//$('.git-import-dialog .url').val(),
                             username = options.username,
                             password = options.password;
@@ -280,7 +300,20 @@ define(function (require, exports, module) {
         CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 GitApi.checkForUncommittedChanges({dir: dir}, function(){pushInternal()}, function(){
-                    doCommitInternal(pushInternal);
+                    Dialogs.showModalDialog("git-new-changes", 
+                                            "Uncommitted Changes", 
+                                            "You have uncommitted changes in your working copy. Do you want to commit them before pushing?",
+                                            [{ className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK, text: "Yes" },
+                                             { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL, text: "No"}]);
+                    //doCommitInternal(pushInternal);
+
+                    $('.git-new-changes .dialog-button').click(function(e){
+                        if ($(this).hasClass('primary')){
+                            doCommitInternal(pushInternal)
+                        }else{
+                            pushInternal();
+                        }
+                    });
                 });
             });
 
@@ -373,14 +406,17 @@ define(function (require, exports, module) {
     function doCommitInternal(callback){
         var dir = ProjectManager.getProjectRoot();
         var commitError = function(e){
-            Dialogs.cancelModalDialogIfOpen('git-commit-dialog');
+            Dialogs.cancelModalDialogIfOpen('modal');
             Dialogs.showModalDialog('git-commit-error', 'Commit Error', e.msg);       
         }
 
         Dialogs.showModalDialogUsingTemplate(CommitFormTemplate(), false);
         $('.git-commit-dialog .primary').click(function(){
-            GitApi.commit({dir:dir, name: $('#inputName').val(), email: $('#inputEmail').val(), commitMsg: $('#inputCommitMsg').val()}, function(){
-                Dialogs.cancelModalDialogIfOpen('git-commit-dialog');
+            var options = {dir:dir, name: $('#inputName').val(), email: $('#inputEmail').val(), commitMsg: $('#inputCommitMsg').val()}
+            var progress = showProgress("Commit", "Finding the latest changes...");
+            progress({pct: 95, msg: "Finding the latest changes..."});
+            GitApi.commit(options, function(){
+                Dialogs.cancelModalDialogIfOpen('git-progress');
                 callback();
             }, commitError);
         });
