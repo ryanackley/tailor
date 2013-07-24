@@ -45,7 +45,7 @@ define(function (require, exports, module) {
         return dirName;
     }
 
-    function authError(authHdr, retry){
+    function authError(authHdr, dir, retry){
         var realmIdx = authHdr.toLowerCase().indexOf('realm="');
         var realm;
         if (realmIdx != -1){
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
         $('.git-auth-dialog .primary').click(function(){
             var username = $('#inputUsername').val();
             var password = $('#inputPassword').val();
-            var dir = ProjectManager.getProjectRoot().fullPath;
+            dir = dir.fullPath || ProjectManager.getProjectRoot().fullPath;
             var settings = gitSettings[dir] || {};
             settings.username = username;
             settings.password = password;
@@ -139,29 +139,62 @@ define(function (require, exports, module) {
         return progress;
     }
 
+    function showBitbucketError(){
+        return Dialogs.showModalDialog('git-bb-error', 'Bitbucket', 'Tailor cannot pull from or push to remote repositories on Bitbucket. The root cause is <a href="https://bitbucket.org/site/master/issue/6666/detect-git-requests-by-content-type-header" target="_blank">this issue</a>. Comment on that issue or <a href="https://support.atlassian.com" target="_blank">contact Atlassian support</a> if you want to see this fixed.');
+    }
+
     function doGitImport(options){
         
         var gitRepoUrl = options.url,//$('.git-import-dialog .url').val(),
             username = options.username,
             password = options.password,
+            fromWelcomeMat = options.fromWelcomeMat;
             dirName = dirNameForGitUrl(gitRepoUrl);
 
-        Dialogs.cancelModalDialogIfOpen("git-import-dialog");
-        Dialogs.showModalDialogUsingTemplate(ProgressTemplate({title: "Cloning Git Repo...", initialMsg: "Connecting to server..."}), false);
 
-        var progress = createProgressMonitor();
+        Dialogs.cancelModalDialogIfOpen("git-import-dialog");
         
         if (username && password){
             gitSettings['/projects/' + dirName] = {username: username, password: password};
             storeGitSettings();
         }
 
-        getProjectsRootDir(function(projectsDir){
-            projectsDir.getDirectory(dirName, {create:true}, function(newDir){
-                GitApi.clone({dir: newDir, url: gitRepoUrl, depth: 1, progress: progress, username:username, password:password}, function(){
-                    ProjectManager.openProject(newDir.fullPath);
-                    Dialogs.cancelModalDialogIfOpen('git-progress');
+        var cloneError = function(e){
+            Dialogs.cancelModalDialogIfOpen('git-progress');
+            var result;
+            if (e.type == GitApi.HTTP_AUTH_ERROR){
+                authError(e.auth, newDir, doClone);
+            }
+            else if (e.type == GitApi.AJAX_ERROR && e.url.indexOf('bitbucket.org') != -1){
+                result = showBitbucketError();
+            }
+            else{
+                result = Dialogs.showModalDialog('git-clone-error', 'Clone error', e.msg);
+            }
+            if (result && fromWelcomeMat){
+                result.done(function(){
+                    promptForNewProject(true);
                 });
+            }
+        }
+
+        var newDir;
+        var doClone = function(){
+            var settings = gitSettings['/projects/' + dirName] || {};
+            var username = settings.username,
+                password = settings.password;
+
+            var progress = showProgress("Cloning Git Repo...", "Connecting to server...");
+            GitApi.clone({dir: newDir, url: gitRepoUrl, depth: 1, progress: progress, username:username, password:password}, function(){
+                ProjectManager.openProject(newDir.fullPath);
+                Dialogs.cancelModalDialogIfOpen('git-progress');
+            }, cloneError);
+        }
+
+        getProjectsRootDir(function(projectsDir){
+            projectsDir.getDirectory(dirName, {create:true}, function(dir){
+                newDir = dir;
+                doClone();
             }, fileErrorHandler);
         });
     }
@@ -188,7 +221,7 @@ define(function (require, exports, module) {
                 $('.git-import-dialog .help-block').text('URL can\'t be blank').show();
             }
             else{
-                callback({url: gitRepoUrl, username: username, password: password});
+                callback({url: gitRepoUrl, username: username, password: password, fromWelcomeMat: fromWelcomeMat});
             }
         });
 
@@ -224,7 +257,7 @@ define(function (require, exports, module) {
         var pullError = function(e){
             Dialogs.cancelModalDialogIfOpen('git-progress');
             if (e.type == GitApi.HTTP_AUTH_ERROR){
-                authError(e.auth, pushInternal);
+                authError(e.auth, dir, pushInternal);
             }
             else{
                 Dialogs.showModalDialog('git-pull-error', 'Pull error', e.msg);
@@ -233,7 +266,7 @@ define(function (require, exports, module) {
         var pullInternal = function(){
             var settings = gitSettings[dir.fullPath] || {};
             var progress = showProgress("Pulling from Remote Repo", "Looking for uncommitted changes...")
-            GitApi.pull({dir: dir, username: settings.username, password: settings.password}, function(){
+            GitApi.pull({dir: dir, username: settings.username, password: settings.password, progress: progress}, function(){
                 Dialogs.cancelModalDialogIfOpen('git-progress');
                 Dialogs.showModalDialog('git-pull-success', 'Pull successful', 'The pull was successful');
                 ProjectManager.refreshFileTree();
@@ -259,7 +292,10 @@ define(function (require, exports, module) {
         var pushError = function(e){
             Dialogs.cancelModalDialogIfOpen('modal');
             if (e.type == GitApi.HTTP_AUTH_ERROR){
-                authError(e.auth, pushInternal);
+                authError(e.auth, dir, pushInternal);
+            }
+            else if (e.type == GitApi.AJAX_ERROR && e.url.indexOf('bitbucket.org') != -1){
+                showBitbucketError();
             }
             else{
                 Dialogs.showModalDialog('git-push-error', 'Push error', e.msg);
@@ -410,12 +446,27 @@ define(function (require, exports, module) {
             Dialogs.showModalDialog('git-commit-error', 'Commit Error', e.msg);       
         }
 
-        Dialogs.showModalDialogUsingTemplate(CommitFormTemplate(), false);
+        var settings = gitSettings[dir.fullPath] || {},
+            name = settings.name || "",
+            email = settings.email || "",
+            focusOnMsg = name.trim().length > 0 || email.trim().length > 0;
+
+
+        Dialogs.showModalDialogUsingTemplate(CommitFormTemplate({name: name, email: email}), false);
+        var focusSelector = focusOnMsg ? '#inputCommitMsg': '#inputEmail';
+        $(focusSelector).focus();
+
         $('.git-commit-dialog .primary').click(function(){
-            var options = {dir:dir, name: $('#inputName').val(), email: $('#inputEmail').val(), commitMsg: $('#inputCommitMsg').val()}
+            settings.name = $('#inputName').val();
+            settings.email = $('#inputEmail').val();
+
+            var options = {dir:dir, name: settings.name, email: settings.email, commitMsg: $('#inputCommitMsg').val()}
             var progress = showProgress("Commit", "Finding the latest changes...");
             progress({pct: 95, msg: "Finding the latest changes..."});
+
             GitApi.commit(options, function(){
+                gitSettings[dir.fullPath] = settings;
+                storeGitSettings();
                 Dialogs.cancelModalDialogIfOpen('git-progress');
                 callback();
             }, commitError);

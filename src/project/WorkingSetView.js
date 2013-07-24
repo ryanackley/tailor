@@ -434,7 +434,7 @@ define(function (require, exports, module) {
             var items = $openFilesContainer.find("ul").children();
             items.each(function () {
                 var $listItem = $(this);
-                if ($listItem.data(_FILE_KEY).fullPath === file.fullPath) {
+                if ($listItem.data(_FILE_KEY).fullPath === (file.fullPath || file)) {
                     result = $listItem;
                     return false;
                     // breaks each

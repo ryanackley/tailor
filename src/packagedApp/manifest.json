@@ -1,11 +1,14 @@
 {
-  "name": "Tailor-brackets",
+  "name": "Tailor",
   "description": "Code Editor for Chrome",
-  "version": "0.1",
+  "version": "0.1.1",
   "app": {
     "background": {
       "scripts": ["background.js"]
     }
+  },
+  "icons" : {
+    "128": "tailor.png"
   },
   "permissions" : ["http://*/", "https://*/","storage", "fileSystem", "fileSystem.write", "unlimitedStorage"]
 }
