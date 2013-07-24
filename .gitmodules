@@ -27,4 +27,4 @@
 	url = https://github.com/requirejs/i18n.git
 [submodule "src/extensions/default/ProjectFromGit/thirdparty/gitlite.js"]
 	path = src/extensions/default/ProjectFromGit/thirdparty/gitlite.js
-	url = https://github.com/ryanackley/gitlite.js.git
+	url = https://github.com/ryanackley/git-html5.js.git
